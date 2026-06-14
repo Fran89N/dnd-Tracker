@@ -2,7 +2,7 @@
   "name": "D&D Tracker Iniziativa",
   "short_name": "D&D Tracker",
   "description": "Tracker per l'iniziativa di Dungeons & Dragons",
-  "start_url": "./dnd-tracker.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#1a1510",
