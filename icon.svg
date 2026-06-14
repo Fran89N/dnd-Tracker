@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Sfondo tondo scuro -->
+  <rect width="512" height="512" rx="100" fill="#1a1510"/>
+  <!-- Dado D20 stilizzato -->
+  <polygon points="256,60 420,170 420,340 256,450 92,340 92,170"
+           fill="none" stroke="#c9a227" stroke-width="18" stroke-linejoin="round"/>
+  <!-- Linee interne del d20 -->
+  <line x1="256" y1="60"  x2="256" y2="200" stroke="#c9a227" stroke-width="10" opacity="0.6"/>
+  <line x1="92"  y1="170" x2="256" y2="200" stroke="#c9a227" stroke-width="10" opacity="0.6"/>
+  <line x1="420" y1="170" x2="256" y2="200" stroke="#c9a227" stroke-width="10" opacity="0.6"/>
+  <line x1="256" y1="200" x2="256" y2="450" stroke="#c9a227" stroke-width="10" opacity="0.6"/>
+  <line x1="92"  y1="340" x2="256" y2="200" stroke="#c9a227" stroke-width="10" opacity="0.6"/>
+  <line x1="420" y1="340" x2="256" y2="200" stroke="#c9a227" stroke-width="10" opacity="0.6"/>
+  <!-- Numero 20 al centro -->
+  <text x="256" y="290" text-anchor="middle" font-family="Georgia, serif"
+        font-size="110" font-weight="bold" fill="#e8c04a">20</text>
+</svg>

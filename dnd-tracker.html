@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>D&D Tracker Iniziativa</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#c9a227">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="D&D Tracker">
+<style>
+  :root {
+    --bg: #1a1510;
+    --bg2: #231d14;
+    --bg3: #2e261a;
+    --surface: #332c1f;
+    --surface2: #3e3526;
+    --border: #4a3f2c;
+    --border2: #5e5038;
+    --gold: #c9a227;
+    --gold2: #e8c04a;
+    --red: #8b1a1a;
+    --red2: #b52323;
+    --red3: #d63030;
+    --green: #2a5c2a;
+    --green2: #3a7a3a;
+    --green3: #4fa04f;
+    --text: #e8dcc8;
+    --text2: #b8a990;
+    --text3: #7a6e5a;
+    --active-row: #3d3010;
+    --active-border: #c9a227;
+    --pg-color: #4a8fc4;
+    --monster-color: #b52323;
+    --font-main: 'Georgia', 'Times New Roman', serif;
+    --font-ui: 'Segoe UI', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-ui);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--bg2);
+    border-bottom: 2px solid var(--gold);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .header-title {
+    font-family: var(--font-main);
+    font-size: 22px;
+    color: var(--gold2);
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .header-title svg { flex-shrink: 0; }
+
+  .header-controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  /* ROUND BADGE */
+  .round-badge {
+    background: var(--surface);
+    border: 1px solid var(--gold);
+    border-radius: 20px;
+    padding: 4px 16px;
+    font-size: 14px;
+    color: var(--gold2);
+    font-weight: 600;
+  }
+
+  /* BUTTONS */
+  .btn {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-ui);
+  }
+  .btn:hover { background: var(--surface2); border-color: var(--gold); color: var(--gold2); }
+  .btn-gold { background: var(--gold); color: #1a1510; border-color: var(--gold2); font-weight: 600; }
+  .btn-gold:hover { background: var(--gold2); color: #1a1510; }
+  .btn-green { background: var(--green); color: #a8d8a8; border-color: var(--green2); }
+  .btn-green:hover { background: var(--green2); }
+  .btn-red { background: var(--red); color: #f0a0a0; border-color: var(--red2); }
+  .btn-red:hover { background: var(--red2); }
+  .btn-sm { padding: 4px 9px; font-size: 12px; }
+  .btn-icon { padding: 5px 7px; }
+
+  /* MAIN LAYOUT */
+  main {
+    display: flex;
+    flex: 1;
+    gap: 0;
+  }
+
+  /* SIDEBAR */
+  aside {
+    width: 260px;
+    min-width: 220px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+  }
+  .sidebar-section h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text3);
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+  }
+  .sidebar-section { display: flex; flex-direction: column; gap: 6px; }
+
+  .saved-list-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    font-size: 13px;
+  }
+  .saved-list-item span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text2); }
+  .saved-list-item:hover { border-color: var(--gold); }
+
+  /* CONTENT AREA */
+  .content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* TOOLBAR */
+  .toolbar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  /* FORM AGGIUNGI */
+  .add-form {
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: none;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+  .add-form.open { display: flex; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-group label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; }
+  .form-group input, .form-group select {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 5px;
+    color: var(--text);
+    padding: 6px 9px;
+    font-size: 13px;
+    font-family: var(--font-ui);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-group input:focus, .form-group select:focus { border-color: var(--gold); }
+  .form-group input[type="number"] { width: 72px; }
+  .form-group select { width: 100px; }
+  .form-group input[type="text"] { width: 140px; }
+
+  /* TABLE AREA */
+  .table-wrap {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: auto;
+    padding: 0;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 780px;
+  }
+  thead tr {
+    background: var(--bg3);
+    border-bottom: 2px solid var(--gold);
+  }
+  th {
+    padding: 10px 10px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--gold);
+    font-weight: 600;
+    text-align: left;
+    white-space: nowrap;
+  }
+  td {
+    padding: 8px 10px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  tr.character-row { transition: background 0.2s; }
+  tr.character-row:hover { background: var(--surface); }
+  tr.character-row.active-turn {
+    background: var(--active-row) !important;
+    outline: 2px solid var(--active-border);
+    outline-offset: -2px;
+  }
+  tr.character-row.hazard-pass {
+    background: rgba(201, 162, 39, 0.16);
+    box-shadow: inset 4px 0 0 var(--gold);
+  }
+  tr.character-row.dead td { opacity: 0.45; }
+
+  /* TIPO BADGE */
+  .tipo-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .tipo-pg { background: #1a3a5c; color: #7ec0ee; border: 1px solid #2a5a8c; }
+  .tipo-mostro { background: #3a1010; color: #f08080; border: 1px solid #6a2020; }
+
+  /* PF BAR */
+  .pf-cell { display: flex; flex-direction: column; gap: 3px; min-width: 100px; }
+  .pf-bar-wrap { background: var(--surface); border-radius: 4px; height: 5px; overflow: hidden; }
+  .pf-bar { height: 5px; border-radius: 4px; transition: width 0.3s, background 0.3s; }
+  .pf-numbers { font-size: 12px; color: var(--text2); display: flex; align-items: center; gap: 4px; }
+  .pf-input {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-size: 13px;
+    width: 40px;
+    outline: none;
+    border-bottom: 1px solid var(--border2);
+    text-align: center;
+  }
+  .pf-input:focus { border-color: var(--gold); }
+
+  /* CONDIZIONI */
+  .condizioni-wrap { display: flex; flex-wrap: wrap; gap: 3px; max-width: 180px; }
+  .cond-tag {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 9px;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: opacity 0.15s;
+  }
+  .cond-off { opacity: 0.3; border-color: var(--border); color: var(--text3); background: transparent; }
+  .cond-on { opacity: 1; }
+
+  .cond-avvelenato { background: #2a4020; color: #80c880; border-color: #4a6040; }
+  .cond-accecato { background: #20204a; color: #9090e0; border-color: #4040a0; }
+  .cond-stordito { background: #3a3020; color: #d0c080; border-color: #6a6030; }
+  .cond-spaventato { background: #3a2030; color: #d080a0; border-color: #7a4060; }
+  .cond-paralizzato { background: #252510; color: #b0b060; border-color: #606030; }
+  .cond-charmato { background: #3a1535; color: #e090d0; border-color: #7a3070; }
+  .cond-prono { background: #2a1a10; color: #c0a080; border-color: #5a4030; }
+  .cond-concentrato { background: #103838; color: #7ee0d8; border-color: #2a7770; }
+
+  /* INIZIATIVA CELL */
+  .init-cell { display: flex; align-items: center; gap: 4px; justify-content: flex-start; }
+  .init-mod {
+    font-size: 10px;
+    color: var(--text3);
+    white-space: nowrap;
+  }
+  .init-mod.rolled {
+    color: #8b8b8b;
+    font-weight: 600;
+  }
+  .init-val {
+    font-size: 18px;
+    font-weight: 700;
+    font-family: var(--font-main);
+    color: var(--gold2);
+    width: 42px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid transparent;
+    outline: none;
+    text-align: center;
+  }
+  .init-val:focus { border-bottom-color: var(--gold); }
+  .init-val[readonly] {
+    cursor: default;
+    color: var(--gold2);
+    border-bottom-color: transparent !important;
+    pointer-events: none;
+  }
+
+  /* INIT TOOLTIP */
+  .init-tooltip-wrap { position: relative; display: inline-flex; align-items: center; }
+  .init-tooltip {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg2);
+    border: 1px solid var(--gold);
+    border-radius: 5px;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: var(--gold2);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 50;
+    font-family: var(--font-main);
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  }
+  .init-tooltip-wrap:hover .init-tooltip { opacity: 1; }
+
+  /* DEATH SAVING THROWS */
+  tr.character-row.pg-dying td { opacity: 1 !important; }
+  .death-save-cell { display: flex; flex-direction: column; gap: 4px; min-width: 160px; }
+  .death-save-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #e07070; font-weight: 700; }
+  .death-save-dots { display: flex; gap: 5px; align-items: center; }
+  .ds-dot {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 2px solid #7a3030; background: #1a0a0a;
+    font-size: 12px; display: flex; align-items: center; justify-content: center;
+    user-select: none; flex-shrink: 0; transition: border-color 0.15s, background 0.15s;
+  }
+  .ds-dot.clickable { cursor: pointer; border-color: #c9a227; animation: pulse-dot 1.2s ease-in-out infinite; }
+  .ds-dot.clickable:hover { background: #2a1a00; }
+  .ds-dot.success { border-color: #4fa04f; background: #1a3a1a; color: #a0e0a0; font-size: 11px; }
+  .ds-dot.failure { border-color: #b52323; background: #3a1010; color: #f08080; font-size: 11px; }
+  @keyframes pulse-dot {
+    0%,100% { box-shadow: 0 0 0 0 rgba(201,162,39,0.5); }
+    50% { box-shadow: 0 0 0 4px rgba(201,162,39,0); }
+  }
+  .death-save-dead { font-size: 13px; font-weight: 800; color: #c03030; letter-spacing: 2px; text-transform: uppercase; font-family: var(--font-main); }
+
+  /* NOME CELL */
+  .nome-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 500;
+    width: 130px;
+    border-bottom: 1px solid transparent;
+    padding: 1px 0;
+  }
+  .nome-input:focus { border-bottom-color: var(--gold); }
+
+  /* CA CELL */
+  .ca-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text2);
+    font-size: 13px;
+    width: 40px;
+    border-bottom: 1px solid transparent;
+    text-align: center;
+  }
+  .ca-input:focus { border-bottom-color: var(--gold); }
+
+  /* AZIONI CELLA */
+  .azioni-cell { display: flex; gap: 4px; white-space: nowrap; }
+
+  /* MUSIC PLAYER - RIMOSSO */
+
+  /* BOTTOM BAR */
+  .bottom-bar {
+    background: var(--bg2);
+    border-top: 2px solid var(--gold);
+    padding: 10px 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; top:0; left:0; right:0; bottom:0;
+    background: rgba(0,0,0,0.75);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100;
+    display: none;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg2);
+    border: 2px solid var(--gold);
+    border-radius: 10px;
+    padding: 24px;
+    min-width: 320px;
+    max-width: 480px;
+    width: 90%;
+  }
+  .modal h2 { font-family: var(--font-main); color: var(--gold2); font-size: 18px; margin-bottom: 16px; }
+  .modal input, .modal select {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 5px;
+    color: var(--text);
+    padding: 8px 10px;
+    font-size: 14px;
+    font-family: var(--font-ui);
+    outline: none;
+    width: 100%;
+    margin-bottom: 12px;
+  }
+  .modal input:focus { border-color: var(--gold); }
+  .modal-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+  .desc-editor {
+    min-height: 240px;
+    max-height: 50vh;
+    overflow-y: auto;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.45;
+    outline: none;
+    margin-bottom: 12px;
+  }
+  .desc-editor:focus { border-color: var(--gold); }
+  .desc-editor:empty:before {
+    content: "Scrivi o incolla qui la descrizione del mostro...";
+    color: var(--text3);
+  }
+  .desc-toolbar { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+
+  /* DAMAGE POPOVER */
+  .dmg-popover {
+    position: fixed;
+    background: var(--bg2);
+    border: 1px solid var(--gold);
+    border-radius: 8px;
+    padding: 12px;
+    z-index: 200;
+    display: none;
+    min-width: 200px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+  }
+  .dmg-popover.open { display: block; }
+  .dmg-popover label { font-size: 11px; color: var(--text3); display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+  .dmg-popover input {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    color: var(--text);
+    padding: 6px 8px;
+    font-size: 14px;
+    width: 100%;
+    margin-bottom: 8px;
+    outline: none;
+  }
+  .dmg-popover input:focus { border-color: var(--gold); }
+  .dmg-row { display: flex; gap: 6px; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text3);
+  }
+  .empty-state svg { margin: 0 auto 16px; display: block; opacity: 0.3; }
+  .empty-state p { font-size: 15px; margin-bottom: 8px; }
+  .empty-state small { font-size: 13px; }
+
+  /* DROPDOWN */
+  .dropdown { position: relative; }
+  .dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    background: var(--bg2);
+    border: 1px solid var(--gold);
+    border-radius: 6px;
+    min-width: 200px;
+    z-index: 50;
+    display: none;
+    overflow: hidden;
+  }
+  .dropdown-menu.open { display: block; }
+  .dropdown-item {
+    padding: 9px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.1s;
+  }
+  .dropdown-item:hover { background: var(--surface); color: var(--text); }
+  .dropdown-item.danger:hover { background: var(--red); color: #f0a0a0; }
+  .dropdown-divider { border-top: 1px solid var(--border); }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg2); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+  @media (max-width: 768px) {
+    aside { display: none; }
+    .content { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-title">
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="16,2 30,10 30,22 16,30 2,22 2,10" fill="#2e261a" stroke="#c9a227" stroke-width="1.5"/>
+      <polygon points="16,6 26,11.5 26,20.5 16,26 6,20.5 6,11.5" fill="#1a1510" stroke="#c9a227" stroke-width="0.8"/>
+      <text x="16" y="21" text-anchor="middle" font-size="13" font-weight="bold" fill="#c9a227" font-family="Georgia,serif">d20</text>
+    </svg>
+    ⚔ Tracker Iniziativa D&D
+  </div>
+  <div class="header-controls">
+    <span class="round-badge">Round: <span id="round-num">1</span></span>
+    <div class="dropdown">
+      <button class="btn" onclick="toggleDropdown('reset-menu')">↺ Reset ▾</button>
+      <div class="dropdown-menu" id="reset-menu">
+        <div class="dropdown-item" onclick="resetCombat()">⟳ Resetta combattimento (mantieni PG)</div>
+        <div class="dropdown-item danger" onclick="resetTotal()">✕ Reset totale</div>
+      </div>
+    </div>
+    <div class="dropdown">
+      <button class="btn" onclick="toggleDropdown('save-menu')">💾 Salva/Carica ▾</button>
+      <div class="dropdown-menu" id="save-menu">
+        <div class="dropdown-item" onclick="openSaveModal()">💾 Salva lista corrente</div>
+        <div class="dropdown-item" onclick="exportJSON()">📤 Esporta JSON</div>
+        <div class="dropdown-item" onclick="importJSON()">📥 Importa JSON</div>
+        <div class="dropdown-divider"></div>
+        <div class="dropdown-item danger" onclick="deleteAllSaved()">🗑 Elimina tutte le liste</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <aside>
+    <div class="sidebar-section">
+      <h3>📋 Lista Corrente</h3>
+      <div id="current-list-name" style="font-size:12px;color:var(--text3);padding:2px 0;">Nessuna lista caricata</div>
+    </div>
+    <div class="sidebar-section">
+      <h3>🗂 Liste Salvate</h3>
+      <div id="saved-lists-container">
+        <div style="font-size:12px;color:var(--text3);">Nessuna lista salvata</div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="content">
+    <div class="toolbar">
+      <button class="btn btn-gold" onclick="toggleAddForm()">+ Aggiungi personaggio</button>
+      <button class="btn" onclick="openPartyModal()" title="Aggiungi i tuoi PG al gruppo">⚔ Aggiungi gruppo</button>
+      <button class="btn btn-green" onclick="sortByInitiative()">▼ Ordina per iniziativa</button>
+      <div class="dropdown">
+        <button class="btn" onclick="toggleDropdown('hazard-menu')">Azzardo ▾</button>
+        <div class="dropdown-menu" id="hazard-menu">
+          <div class="dropdown-item" onclick="setHazardDC(null)">Nessuna soglia</div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item" onclick="setHazardDC(5)">5 – Molto Facile</div>
+          <div class="dropdown-item" onclick="setHazardDC(10)">10 – Facile</div>
+          <div class="dropdown-item" onclick="setHazardDC(15)">15 – Media</div>
+          <div class="dropdown-item" onclick="setHazardDC(20)">20 – Difficile</div>
+          <div class="dropdown-item" onclick="setHazardDC(25)">25 – Molto Difficile</div>
+          <div class="dropdown-item" onclick="setHazardDC(30)">30 – Quasi Impossibile</div>
+        </div>
+      </div>
+      <button class="btn btn-green" onclick="rollAllInitiatives()">Tira iniziativa</button>
+      <div style="flex:1"></div>
+      <span id="hazard-info" style="font-size:12px;color:var(--gold2);display:none"></span>
+      <span id="char-count" style="font-size:12px;color:var(--text3);">0 personaggi</span>
+    </div>
+
+    <div class="add-form" id="add-form">
+      <div class="form-group">
+        <label>Nome</label>
+        <input type="text" id="f-nome" placeholder="Es. Aragorn" maxlength="30" />
+      </div>
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="f-tipo">
+          <option value="PG">PG</option>
+          <option value="Mostro">Mostro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Mod. Iniziativa</label>
+        <input type="number" id="f-init" placeholder="+2" min="-10" max="20" />
+      </div>
+      <div class="form-group">
+        <label>Percezione Passiva</label>
+        <input type="number" id="f-percezione" placeholder="10" min="0" max="40" />
+      </div>
+      <div class="form-group">
+        <label>CA</label>
+        <input type="number" id="f-ca" placeholder="14" min="1" max="30" />
+      </div>
+      <div class="form-group">
+        <label>PF Max</label>
+        <input type="number" id="f-pfmax" placeholder="50" min="1" max="999" />
+      </div>
+      <button class="btn btn-gold" onclick="addCharacter()">Aggiungi</button>
+      <button class="btn" onclick="toggleAddForm()">✕</button>
+    </div>
+
+    <div class="table-wrap">
+      <table id="char-table">
+        <thead>
+          <tr>
+            <th style="width:30px"></th>
+            <th>Nome</th>
+            <th>Tipo</th>
+            <th>Iniziativa</th>
+            <th>Percezione Passiva</th>
+            <th>CA</th>
+            <th>Punti Ferita</th>
+            <th>Condizioni</th>
+            <th>Azioni</th>
+          </tr>
+        </thead>
+        <tbody id="char-tbody">
+        </tbody>
+      </table>
+      <div id="empty-state" class="empty-state">
+        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+          <polygon points="30,4 56,18 56,42 30,56 4,42 4,18" stroke="#c9a227" stroke-width="2" fill="none"/>
+          <text x="30" y="36" text-anchor="middle" font-size="20" fill="#c9a227" font-family="Georgia,serif">d20</text>
+        </svg>
+        <p>Nessun personaggio nella lista.</p>
+        <small>Clicca <strong>+ Aggiungi personaggio</strong> per iniziare.</small>
+      </div>
+    </div>
+
+    <div class="bottom-bar">
+      <button class="btn btn-gold" id="btn-avvia" onclick="startCombat()">▶ Avvia combattimento</button>
+      <button class="btn btn-green" id="btn-next" onclick="nextTurn()" style="display:none">⏭ Prossimo turno</button>
+      <button class="btn" id="btn-stop" onclick="stopCombat()" style="display:none">⏹ Ferma</button>
+      <div id="current-turn-info" style="font-size:13px;color:var(--gold2);display:none"></div>
+    </div>
+  </div>
+</main>
+
+<!-- DAMAGE POPOVER -->
+<div class="dmg-popover" id="dmg-popover">
+  <label>Quantità</label>
+  <input type="number" id="dmg-input" placeholder="Es. 10" min="1" />
+  <div class="dmg-row">
+    <button class="btn btn-red" style="flex:1" onclick="applyDamage()">⚔ Danno</button>
+    <button class="btn btn-green" style="flex:1" onclick="applyHeal()">+ Cura</button>
+  </div>
+  <button class="btn btn-sm" style="margin-top:6px;width:100%" onclick="closeDmgPopover()">Annulla</button>
+</div>
+
+<!-- PARTY PICKER MODAL -->
+<div class="modal-overlay" id="party-modal">
+  <div class="modal" style="max-width:400px;">
+    <h2>⚔ Seleziona i tuoi PG</h2>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:12px;">Scegli quali personaggi aggiungere alla lista corrente.</p>
+    <div id="party-checklist" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;"></div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <button class="btn btn-sm" onclick="selectAllParty()">✔ Tutti</button>
+      <button class="btn btn-sm" onclick="deselectAllParty()">✕ Nessuno</button>
+    </div>
+    <div class="modal-btns">
+      <button class="btn" onclick="closePartyModal()">Annulla</button>
+      <button class="btn btn-gold" onclick="confirmAddParty()">Aggiungi selezionati</button>
+    </div>
+  </div>
+</div>
+
+<!-- SAVE MODAL -->
+<div class="modal-overlay" id="save-modal">
+  <div class="modal">
+    <h2>💾 Salva lista</h2>
+    <input type="text" id="save-name-input" placeholder="Nome della lista (es. Dungeon del re)" maxlength="40" />
+    <div class="modal-btns">
+      <button class="btn" onclick="closeSaveModal()">Annulla</button>
+      <button class="btn btn-gold" onclick="confirmSave()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- DESCRIPTION MODAL -->
+<div class="modal-overlay" id="desc-modal">
+  <div class="modal">
+    <h2 id="desc-title">Descrizione mostro</h2>
+    <div class="desc-toolbar">
+      <button class="btn btn-sm" onclick="formatDesc('bold')" title="Grassetto"><strong>B</strong></button>
+      <button class="btn btn-sm" onclick="formatDesc('italic')" title="Corsivo"><em>I</em></button>
+      <button class="btn btn-sm" onclick="formatDesc('insertUnorderedList')" title="Lista">• Lista</button>
+      <button class="btn btn-sm" onclick="formatDesc('removeFormat')" title="Rimuovi formato">Tx</button>
+    </div>
+    <div class="desc-editor" id="desc-editor" contenteditable="true"></div>
+    <div class="modal-btns">
+      <button class="btn" onclick="closeDescModal()">Annulla</button>
+      <button class="btn btn-gold" onclick="saveDescription()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT hidden input -->
+<input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)" />
+
+<script>
+// ==================== STATE ====================
+let characters = [];
+let round = 1;
+let currentListName = '';
+let currentTurnIndex = -1;
+let combatStarted = false;
+let activeDmgCharId = null;
+let activeHazardDC = null;
+let activeDescCharId = null;
+// ==================== DEATH SAVING THROWS ====================
+function rollDeathSave(id) {
+  const c = characters.find(x => x.id === id);
+  if (!c || c.tipo !== 'PG' || c.pfCur > 0) return;
+
+  const roll = Math.floor(Math.random() * 20) + 1;
+
+  if (roll === 20) {
+    c.pfCur = 1;
+    c.pfMax = c.pfMaxBase || c.pfMax;
+    c.deathSaves = [null,null,null,null,null];
+    render();
+    showToast(`🎲 20 NATURALE! ${c.nome} si rialza con 1 PF!`, 'gold');
+    return;
+  }
+
+  if (roll === 1) {
+    let added = 0;
+    for (let i = 0; i < 5 && added < 2; i++) {
+      if (c.deathSaves[i] === null) { c.deathSaves[i] = 'F'; added++; }
+    }
+  } else if (roll < 10) {
+    const idx = c.deathSaves.findIndex(x => x === null);
+    if (idx !== -1) c.deathSaves[idx] = 'F';
+  } else {
+    const idx = c.deathSaves.findIndex(x => x === null);
+    if (idx !== -1) c.deathSaves[idx] = 'S';
+  }
+
+  const successes = c.deathSaves.filter(x => x === 'S').length;
+  const failures  = c.deathSaves.filter(x => x === 'F').length;
+
+  if (successes >= 3) {
+    c.pfCur = 1;
+    c.pfMax = c.pfMaxBase || c.pfMax;
+    c.deathSaves = [null,null,null,null,null];
+    render();
+    showToast(`🎲 Tiro: ${roll} — ${c.nome} si stabilizza! PF ripristinati.`, 'gold');
+  } else if (failures >= 3) {
+    render();
+    showToast(`🎲 Tiro: ${roll} — ☠ ${c.nome} è morto!`, 'red');
+  } else if (roll === 1) {
+    render();
+    showToast(`🎲 Tiro: 1 — Critico! Due fallimenti per ${c.nome}!`, 'red');
+  } else if (roll < 10) {
+    render();
+    showToast(`🎲 Tiro: ${roll} — Fallimento per ${c.nome}.`, 'red');
+  } else {
+    render();
+    showToast(`🎲 Tiro: ${roll} — Successo per ${c.nome}!`, 'green');
+  }
+}
+
+function showToast(msg, type) {
+  let t = document.getElementById('dnd-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'dnd-toast';
+    t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);' +
+      'padding:10px 22px;border-radius:8px;font-size:14px;font-weight:600;z-index:9999;' +
+      'pointer-events:none;transition:opacity 0.4s;font-family:Georgia,serif;letter-spacing:0.5px;' +
+      'border:1px solid;max-width:90vw;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,0.6);';
+    document.body.appendChild(t);
+  }
+  const cols = { gold:{bg:'#2e260a',c:'#e8c04a',b:'#c9a227'}, red:{bg:'#2e0a0a',c:'#f09090',b:'#b52323'}, green:{bg:'#0a2e0a',c:'#80c880',b:'#3a7a3a'} };
+  const col = cols[type] || cols.gold;
+  t.style.background = col.bg; t.style.color = col.c; t.style.borderColor = col.b;
+  t.textContent = msg; t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.opacity = '0'; }, 3200);
+}
+
+// ==================== DROPDOWN ====================
+
+const CONDIZIONI = [
+  {key:'avvelenato', label:'Avvelenato'},
+  {key:'accecato', label:'Accecato'},
+  {key:'stordito', label:'Stordito'},
+  {key:'spaventato', label:'Spaventato'},
+  {key:'paralizzato', label:'Paralizzato'},
+  {key:'charmato', label:'Charmato'},
+  {key:'prono', label:'Prono'},
+  {key:'concentrato', label:'Concentrato'},
+];
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+function readInt(value, fallback) {
+  const parsed = parseInt(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function normalizeCharacter(c) {
+  c.init = readInt(c.init, 0);
+  c.initMod = readInt(c.initMod, 0);
+  c.percezionePassiva = readInt(c.percezionePassiva ?? c.passivePerception, 10);
+  c.ca = readInt(c.ca, 10);
+  c.pfMax = readInt(c.pfMax, 1);
+  c.pfCur = Math.max(0, readInt(c.pfCur, c.pfMax));
+  if (!Array.isArray(c.condizioni)) c.condizioni = [];
+  if (typeof c.initRolled !== 'boolean') c.initRolled = false;
+  if (typeof c.descrizione !== 'string') c.descrizione = '';
+  if (!Array.isArray(c.deathSaves) || c.deathSaves.length !== 5) c.deathSaves = [null,null,null,null,null];
+  // pfMaxBase: the original max HP set at creation, used to restore on stabilization
+  if (!c.pfMaxBase || c.pfMaxBase < 1) c.pfMaxBase = c.pfMax;
+}
+
+function formatModifier(value) {
+  const mod = readInt(value, 0);
+  return (mod >= 0 ? '+' : '') + mod;
+}
+
+function rollD20() {
+  return Math.floor(Math.random() * 20) + 1;
+}
+
+// ==================== RENDER ====================
+function render() {
+  const tbody = document.getElementById('char-tbody');
+  const empty = document.getElementById('empty-state');
+  characters.forEach(normalizeCharacter);
+  document.getElementById('char-count').textContent = characters.length + ' personaggi';
+  updateHazardInfo();
+
+  if (characters.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    document.getElementById('char-table').style.display = 'none';
+    return;
+  }
+  empty.style.display = 'none';
+  document.getElementById('char-table').style.display = 'table';
+
+  tbody.innerHTML = characters.map((c, i) => {
+    const pfPct = c.pfMax > 0 ? Math.max(0, Math.min(100, (c.pfCur / c.pfMax) * 100)) : 0;
+    const pfColor = pfPct > 60 ? 'var(--green3)' : pfPct > 25 ? '#c9a227' : 'var(--red3)';
+    const isActive = combatStarted && i === currentTurnIndex;
+    const isDead    = c.pfCur <= 0 && c.tipo !== 'PG';
+    const isDying   = c.pfCur <= 0 && c.tipo === 'PG';
+    const hazardPass = activeHazardDC !== null && c.tipo === 'PG' && c.percezionePassiva >= activeHazardDC;
+    const initRolled = combatStarted || c.initRolled;
+    const initModText = formatModifier(c.initMod);
+    const showInitMod = !initRolled || c.tipo === 'Mostro';
+
+    // --- Initiative: tooltip + lock after rolled ---
+    const diceRoll = initRolled ? (c.init - c.initMod) : null;
+    const tooltipHtml = initRolled
+      ? `<span class="init-tooltip">${diceRoll}${formatModifier(c.initMod)}</span>` : '';
+    const initInput = initRolled
+      ? `<input class="init-val" type="number" value="${c.init}" readonly tabindex="-1" />`
+      : `<input class="init-val" type="number" value="${c.init}" onchange="updateField('${c.id}','init',parseInt(this.value)||0)" />`;
+
+    // --- Death saves (5 dots) ---
+    const ds = c.deathSaves;
+    const failures  = ds.filter(x => x === 'F').length;
+    const successes = ds.filter(x => x === 'S').length;
+    const deathSaveDead = failures >= 3;
+    const firstEmpty = ds.findIndex(x => x === null);
+
+    const dotsHtml = deathSaveDead
+      ? '<span class="death-save-dead">☠ Morto</span>'
+      : ds.map((val, idx) => {
+          let cls = 'ds-dot';
+          let content = '';
+          if (val === 'S') { cls += ' success'; content = '❤'; }
+          else if (val === 'F') { cls += ' failure'; content = '💀'; }
+          else if (idx === firstEmpty) { cls += ' clickable'; }
+          const click = (val === null && idx === firstEmpty)
+            ? `onclick="rollDeathSave('${c.id}')"` : '';
+          return `<span class="${cls}" ${click}>${content}</span>`;
+        }).join('');
+
+    // --- PF cell or death save cell ---
+    const pfCellHtml = isDying
+      ? `<div class="death-save-cell">
+           <span class="death-save-label">⚰ Tiro Salvezza Morte</span>
+           <div class="death-save-dots">${dotsHtml}</div>
+         </div>`
+      : `<div class="pf-cell">
+           <div class="pf-numbers">
+             <input class="pf-input" type="number" value="${c.pfCur}" min="0" max="${c.pfMax}"
+               onchange="updateField('${c.id}','pfCur',parseInt(this.value)||0)" />
+             <span style="color:var(--text3)">/</span>
+             <input class="pf-input" type="number" value="${c.pfMax}" min="1"
+               onchange="updateField('${c.id}','pfMax',parseInt(this.value)||1)" />
+           </div>
+           <div class="pf-bar-wrap"><div class="pf-bar" style="width:${pfPct}%;background:${pfColor}"></div></div>
+         </div>`;
+
+    const condHTML = CONDIZIONI.map(cond => {
+      const on = c.condizioni.includes(cond.key);
+      return `<span class="cond-tag cond-${cond.key} ${on ? 'cond-on' : 'cond-off'}"
+        onclick="toggleCondizione('${c.id}','${cond.key}')" title="${cond.label}">${cond.label}</span>`;
+    }).join('');
+
+    return `<tr class="character-row ${isActive ? 'active-turn' : ''} ${isDead ? 'dead' : ''} ${isDying ? 'pg-dying' : ''} ${hazardPass ? 'hazard-pass' : ''}" data-id="${c.id}">
+      <td style="text-align:center;color:var(--text3);font-size:12px;padding:4px">${isActive ? '▶' : i+1}</td>
+      <td>
+        <input class="nome-input" value="${escHtml(c.nome)}" onchange="updateField('${c.id}','nome',this.value)" placeholder="Nome..." />
+      </td>
+      <td><span class="tipo-badge tipo-${c.tipo.toLowerCase()}">${c.tipo}</span></td>
+      <td style="text-align:center;">
+        <div class="init-cell" style="justify-content:center;">
+          <div class="init-tooltip-wrap">
+            ${initInput}
+            ${tooltipHtml}
+          </div>
+          ${showInitMod ? `<span class="init-mod ${initRolled ? 'rolled' : ''}">${initModText}</span>` : ''}
+        </div>
+      </td>
+      <td style="text-align:center;"><input class="ca-input" type="number" value="${c.percezionePassiva}" onchange="updateField('${c.id}','percezionePassiva',parseInt(this.value)||0)" style="display:block;margin:0 auto;" /></td>
+      <td style="text-align:center;"><input class="ca-input" type="number" value="${c.ca}" onchange="updateField('${c.id}','ca',parseInt(this.value)||0)" style="display:block;margin:0 auto;" /></td>
+      <td>${pfCellHtml}</td>
+      <td><div class="condizioni-wrap">${condHTML}</div></td>
+      <td>
+        <div class="azioni-cell">
+          <button class="btn btn-sm btn-red" onclick="openDmgPopover('${c.id}',this)" title="Danno/Cura">⚔</button>
+          ${c.tipo === 'Mostro' ? `<button class="btn btn-sm" onclick="openDescModal('${c.id}')" title="Descrizione">🔍</button>` : ''}
+          ${c.tipo === 'Mostro' ? `<button class="btn btn-sm" onclick="duplicateChar('${c.id}')" title="Duplica">⧉</button>` : ''}
+          <button class="btn btn-sm btn-red" onclick="removeChar('${c.id}')" title="Rimuovi">✕</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  renderSavedLists();
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ==================== FORM ====================
+function toggleAddForm() {
+  const f = document.getElementById('add-form');
+  f.classList.toggle('open');
+  if (f.classList.contains('open')) document.getElementById('f-nome').focus();
+}
+
+function addCharacter() {
+  const nome = document.getElementById('f-nome').value.trim() || 'Personaggio';
+  const tipo = document.getElementById('f-tipo').value;
+  const initMod = readInt(document.getElementById('f-init').value, 0);
+  const percezionePassiva = readInt(document.getElementById('f-percezione').value, 10);
+  const ca = readInt(document.getElementById('f-ca').value, 10);
+  const pfMax = readInt(document.getElementById('f-pfmax').value, 1);
+
+  characters.push({ id: uid(), nome, tipo, init: 0, initMod, initRolled: false, percezionePassiva, ca, pfMax, pfMaxBase: pfMax, pfCur: pfMax, condizioni: [], descrizione: '', deathSaves: [null,null,null,null,null] });
+
+  if (characters.length === 1 && !currentListName) {
+    const nome_lista = prompt('📋 Dai un nome a questo incontro/lista (puoi saltare):');
+    if (nome_lista && nome_lista.trim()) {
+      currentListName = nome_lista.trim();
+      document.getElementById('current-list-name').textContent = currentListName;
+    }
+  }
+
+  document.getElementById('f-nome').value = '';
+  document.getElementById('f-init').value = '';
+  document.getElementById('f-percezione').value = '';
+  document.getElementById('f-ca').value = '';
+  document.getElementById('f-pfmax').value = '';
+  document.getElementById('f-nome').focus();
+  render();
+}
+
+// Enter key on form
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('add-form').classList.contains('open')) {
+    const active = document.activeElement;
+    if (['f-nome','f-tipo','f-init','f-percezione','f-ca','f-pfmax'].includes(active.id)) addCharacter();
+  }
+  if (e.key === 'Escape') { closeAllDropdowns(); closeDmgPopover(); closeSaveModal(); closeDescModal(); }
+});
+
+// ==================== FIELDS ====================
+function updateField(id, field, value) {
+  const c = characters.find(x => x.id === id);
+  if (!c) return;
+  c[field] = value;
+  if (field === 'init') c.initRolled = true;
+  if (field === 'pfMax' && c.pfCur > c.pfMax) c.pfCur = c.pfMax;
+  if (field === 'pfCur' && value > 0 && c.tipo === 'PG') c.deathSaves = [null,null,null,null,null];
+  render();
+}
+
+function toggleCondizione(id, key) {
+  const c = characters.find(x => x.id === id);
+  if (!c) return;
+  const idx = c.condizioni.indexOf(key);
+  if (idx >= 0) c.condizioni.splice(idx, 1);
+  else c.condizioni.push(key);
+  render();
+}
+
+function duplicateChar(id) {
+  const c = characters.find(x => x.id === id);
+  if (!c) return;
+  const clone = JSON.parse(JSON.stringify(c));
+  clone.id = uid();
+  clone.nome = clone.nome + ' (copia)';
+  const idx = characters.indexOf(c);
+  characters.splice(idx + 1, 0, clone);
+  render();
+}
+
+function openDescModal(id) {
+  const c = characters.find(x => x.id === id);
+  if (!c || c.tipo !== 'Mostro') return;
+  activeDescCharId = id;
+  document.getElementById('desc-title').textContent = 'Descrizione: ' + c.nome;
+  document.getElementById('desc-editor').innerHTML = c.descrizione || '';
+  document.getElementById('desc-modal').classList.add('open');
+  document.getElementById('desc-editor').focus();
+}
+
+function closeDescModal() {
+  const modal = document.getElementById('desc-modal');
+  if (modal) modal.classList.remove('open');
+  activeDescCharId = null;
+}
+
+function formatDesc(command) {
+  document.execCommand(command, false, null);
+  document.getElementById('desc-editor').focus();
+}
+
+function saveDescription() {
+  const c = characters.find(x => x.id === activeDescCharId);
+  if (!c) return;
+  c.descrizione = document.getElementById('desc-editor').innerHTML;
+  closeDescModal();
+  render();
+}
+
+function removeChar(id) {
+  characters = characters.filter(x => x.id !== id);
+  if (combatStarted && currentTurnIndex >= characters.length) currentTurnIndex = 0;
+  render();
+}
+
+// ==================== SORT ====================
+function sortByInitiative() {
+  characters.sort((a, b) => b.init - a.init);
+  render();
+}
+
+function setHazardDC(dc) {
+  activeHazardDC = dc;
+  closeAllDropdowns();
+  render();
+}
+
+function updateHazardInfo() {
+  const el = document.getElementById('hazard-info');
+  if (!el) return;
+  if (activeHazardDC === null) {
+    el.style.display = 'none';
+    el.textContent = '';
+    return;
+  }
+  const count = characters.filter(c => c.tipo === 'PG' && c.percezionePassiva >= activeHazardDC).length;
+  el.style.display = 'inline';
+  el.textContent = `Azzardo CD ${activeHazardDC}: ${count} PG`;
+}
+
+function rollAllInitiatives(options = {}) {
+  if (characters.length === 0) {
+    if (!options.silent) alert('Aggiungi almeno un personaggio o mostro!');
+    return;
+  }
+  characters.forEach(c => {
+    normalizeCharacter(c);
+    c.init = rollD20() + c.initMod;
+    c.initRolled = true;
+  });
+  sortByInitiative();
+}
+
+// ==================== COMBAT ====================
+function startCombat() {
+  if (characters.length === 0) { alert('Aggiungi almeno un personaggio!'); return; }
+  rollAllInitiatives({silent:true});
+  combatStarted = true;
+  currentTurnIndex = 0;
+  round = 1;
+  document.getElementById('round-num').textContent = round;
+  document.getElementById('btn-avvia').style.display = 'none';
+  document.getElementById('btn-next').style.display = 'inline-flex';
+  document.getElementById('btn-stop').style.display = 'inline-flex';
+  document.getElementById('current-turn-info').style.display = 'block';
+  updateTurnInfo();
+  render();
+}
+
+function nextTurn() {
+  if (!combatStarted || characters.length === 0) return;
+  currentTurnIndex = (currentTurnIndex + 1) % characters.length;
+  if (currentTurnIndex === 0) {
+    round++;
+    document.getElementById('round-num').textContent = round;
+  }
+  updateTurnInfo();
+  render();
+  // scroll active row into view
+  const activeRow = document.querySelector('.active-turn');
+  if (activeRow) activeRow.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function stopCombat() {
+  combatStarted = false;
+  currentTurnIndex = -1;
+  document.getElementById('btn-avvia').style.display = 'inline-flex';
+  document.getElementById('btn-next').style.display = 'none';
+  document.getElementById('btn-stop').style.display = 'none';
+  document.getElementById('current-turn-info').style.display = 'none';
+  render();
+}
+
+function updateTurnInfo() {
+  const c = characters[currentTurnIndex];
+  if (!c) return;
+  document.getElementById('current-turn-info').textContent =
+    `Turno di: ${c.nome} (${c.tipo}) — Iniziativa ${c.init}`;
+}
+
+function resetCombat() {
+  closeAllDropdowns();
+  combatStarted = false; currentTurnIndex = -1; round = 1;
+  document.getElementById('round-num').textContent = 1;
+  characters.forEach(c => { c.pfCur = c.pfMax; c.condizioni = []; c.init = 0; c.initRolled = false; c.deathSaves = [null,null,null,null,null]; });
+  document.getElementById('btn-avvia').style.display = 'inline-flex';
+  document.getElementById('btn-next').style.display = 'none';
+  document.getElementById('btn-stop').style.display = 'none';
+  document.getElementById('current-turn-info').style.display = 'none';
+  render();
+}
+
+function resetTotal() {
+  if (!confirm('Sei sicuro? Tutti i personaggi verranno rimossi.')) return;
+  closeAllDropdowns();
+  characters = []; round = 1; combatStarted = false; currentTurnIndex = -1;
+  activeHazardDC = null;
+  document.getElementById('round-num').textContent = 1;
+  document.getElementById('btn-avvia').style.display = 'inline-flex';
+  document.getElementById('btn-next').style.display = 'none';
+  document.getElementById('btn-stop').style.display = 'none';
+  document.getElementById('current-turn-info').style.display = 'none';
+  currentListName = '';
+  document.getElementById('current-list-name').textContent = 'Nessuna lista caricata';
+  render();
+}
+
+// ==================== DAMAGE/HEAL ====================
+function openDmgPopover(id, btn) {
+  activeDmgCharId = id;
+  const pop = document.getElementById('dmg-popover');
+  const rect = btn.getBoundingClientRect();
+  pop.style.top = (rect.bottom + window.scrollY + 6) + 'px';
+  pop.style.left = Math.min(rect.left + window.scrollX, window.innerWidth - 220) + 'px';
+  pop.classList.add('open');
+  document.getElementById('dmg-input').value = '';
+  document.getElementById('dmg-input').focus();
+}
+
+function closeDmgPopover() {
+  document.getElementById('dmg-popover').classList.remove('open');
+  activeDmgCharId = null;
+}
+
+function applyDamage() {
+  const val = parseInt(document.getElementById('dmg-input').value) || 0;
+  const c = characters.find(x => x.id === activeDmgCharId);
+  if (!c || val <= 0) return;
+  c.pfCur = Math.max(0, c.pfCur - val);
+  closeDmgPopover(); render();
+}
+
+function applyHeal() {
+  const val = parseInt(document.getElementById('dmg-input').value) || 0;
+  const c = characters.find(x => x.id === activeDmgCharId);
+  if (!c || val <= 0) return;
+  c.pfCur = Math.min(c.pfMax, c.pfCur + val);
+  if (c.pfCur > 0 && c.tipo === 'PG') c.deathSaves = [null,null,null,null,null];
+  closeDmgPopover(); render();
+}
+
+// ==================== SAVE / LOAD ====================
+function getSavedLists() {
+  try { return JSON.parse(localStorage.getItem('dnd_lists') || '{}'); } catch { return {}; }
+}
+function setSavedLists(obj) { localStorage.setItem('dnd_lists', JSON.stringify(obj)); }
+
+function openSaveModal() {
+  closeAllDropdowns();
+  document.getElementById('save-modal').classList.add('open');
+  document.getElementById('save-name-input').focus();
+}
+function closeSaveModal() { document.getElementById('save-modal').classList.remove('open'); }
+
+function confirmSave() {
+  const name = document.getElementById('save-name-input').value.trim();
+  if (!name) { alert('Inserisci un nome per la lista.'); return; }
+  const lists = getSavedLists();
+  lists[name] = { characters, round };
+  setSavedLists(lists);
+  document.getElementById('current-list-name').textContent = name;
+  closeSaveModal();
+  renderSavedLists();
+}
+
+function loadList(name) {
+  const lists = getSavedLists();
+  if (!lists[name]) return;
+  characters = JSON.parse(JSON.stringify(lists[name].characters));
+  round = lists[name].round || 1;
+  currentListName = name;
+  combatStarted = false; currentTurnIndex = -1;
+  document.getElementById('round-num').textContent = round;
+  document.getElementById('current-list-name').textContent = name;
+  document.getElementById('btn-avvia').style.display = 'inline-flex';
+  document.getElementById('btn-next').style.display = 'none';
+  document.getElementById('btn-stop').style.display = 'none';
+  document.getElementById('current-turn-info').style.display = 'none';
+  render();
+}
+
+function deleteList(name) {
+  if (!confirm('Eliminare la lista "' + name + '"?')) return;
+  const lists = getSavedLists();
+  delete lists[name];
+  setSavedLists(lists);
+  renderSavedLists();
+}
+
+function deleteAllSaved() {
+  closeAllDropdowns();
+  if (!confirm('Eliminare tutte le liste salvate?')) return;
+  localStorage.removeItem('dnd_lists');
+  renderSavedLists();
+}
+
+function renderSavedLists() {
+  const container = document.getElementById('saved-lists-container');
+  const lists = getSavedLists();
+  const keys = Object.keys(lists);
+  if (keys.length === 0) {
+    container.innerHTML = '<div style="font-size:12px;color:var(--text3);">Nessuna lista salvata</div>';
+    return;
+  }
+  container.innerHTML = keys.map(name => `
+    <div class="saved-list-item">
+      <span title="${escHtml(name)}">${escHtml(name)}</span>
+      <button class="btn btn-sm" onclick="loadList('${escHtml(name)}')" title="Carica">▶</button>
+      <button class="btn btn-sm btn-red" onclick="deleteList('${escHtml(name)}')" title="Elimina">✕</button>
+    </div>`).join('');
+}
+
+// ==================== EXPORT / IMPORT ====================
+function exportJSON() {
+  closeAllDropdowns();
+  const suggerito = currentListName || ('dnd-iniziativa-' + new Date().toISOString().slice(0,10));
+  const nome_inserito = prompt('📤 Nome del file/incontro da esportare:', suggerito);
+  if (nome_inserito === null) return;
+  const nome_finale = nome_inserito.trim() || suggerito;
+  currentListName = nome_finale;
+  document.getElementById('current-list-name').textContent = nome_finale;
+  const filename = nome_finale.replace(/[^a-zA-Z0-9_\-àèéìòù ]/g, '').replace(/\s+/g, '-');
+  const data = JSON.stringify({ name: nome_finale, characters, round, exportDate: new Date().toISOString() }, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename + '.json';
+  a.click();
+}
+
+function importJSON() {
+  closeAllDropdowns();
+  document.getElementById('import-file').click();
+}
+
+function handleImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (!data.characters) throw new Error('Formato non valido');
+      characters = data.characters;
+      round = data.round || 1;
+      currentListName = data.name || file.name.replace('.json','');
+      combatStarted = false; currentTurnIndex = -1;
+      document.getElementById('round-num').textContent = round;
+      document.getElementById('current-list-name').textContent = currentListName;
+      document.getElementById('btn-avvia').style.display = 'inline-flex';
+      document.getElementById('btn-next').style.display = 'none';
+      document.getElementById('btn-stop').style.display = 'none';
+      document.getElementById('current-turn-info').style.display = 'none';
+      render();
+    } catch(err) { alert('Errore nell\'importazione: ' + err.message); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ==================== DROPDOWN ====================
+function toggleDropdown(id) {
+  const menu = document.getElementById(id);
+  const isOpen = menu.classList.contains('open');
+  closeAllDropdowns();
+  if (!isOpen) menu.classList.add('open');
+}
+
+function closeAllDropdowns() {
+  document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('open'));
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.dropdown') && !e.target.closest('.dropdown-menu')) closeAllDropdowns();
+  if (!e.target.closest('.dmg-popover') && !e.target.closest('.btn-red')) closeDmgPopover();
+});
+
+// ==================== STATIC PARTY ====================
+const STATIC_PARTY = [
+  { nome: 'Solah',    initMod: 5,  percezionePassiva: 10, ca: 14, pfMax: 32 },
+  { nome: 'Sharzi',   initMod: 4,  percezionePassiva: 10, ca: 16, pfMax: 31 },
+  { nome: 'Khael',    initMod: 1,  percezionePassiva: 10, ca: 16, pfMax: 32 },
+  { nome: 'Solomon',  initMod: 2,  percezionePassiva: 10, ca: 13, pfMax: 31 },
+  { nome: 'Kharzerk', initMod: -1, percezionePassiva: 10, ca: 13, pfMax: 32 },
+];
+
+function openPartyModal() {
+  const list = document.getElementById('party-checklist');
+  list.innerHTML = STATIC_PARTY.map((pg, i) => {
+    const alreadyIn = characters.some(c => c.nome === pg.nome && c.tipo === 'PG');
+    return `<label style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;cursor:pointer;${alreadyIn ? 'opacity:0.45;' : ''}">
+      <input type="checkbox" id="party-check-${i}" ${alreadyIn ? 'disabled checked' : 'checked'}
+        style="width:16px;height:16px;accent-color:var(--gold);flex-shrink:0;" />
+      <span style="flex:1;">
+        <strong style="color:var(--text);">${pg.nome}</strong>
+        <span style="font-size:11px;color:var(--text3);margin-left:8px;">CA ${pg.ca} · PF ${pg.pfMax} · Init ${pg.initMod >= 0 ? '+' : ''}${pg.initMod}</span>
+      </span>
+      ${alreadyIn ? '<span style="font-size:10px;color:var(--text3);">già presente</span>' : ''}
+    </label>`;
+  }).join('');
+  document.getElementById('party-modal').classList.add('open');
+}
+
+function closePartyModal() {
+  document.getElementById('party-modal').classList.remove('open');
+}
+
+function selectAllParty() {
+  STATIC_PARTY.forEach((_, i) => {
+    const cb = document.getElementById('party-check-' + i);
+    if (cb && !cb.disabled) cb.checked = true;
+  });
+}
+
+function deselectAllParty() {
+  STATIC_PARTY.forEach((_, i) => {
+    const cb = document.getElementById('party-check-' + i);
+    if (cb && !cb.disabled) cb.checked = false;
+  });
+}
+
+function confirmAddParty() {
+  const wasEmpty = characters.length === 0;
+  let added = 0;
+  STATIC_PARTY.forEach((pg, i) => {
+    const cb = document.getElementById('party-check-' + i);
+    if (!cb || !cb.checked || cb.disabled) return;
+    characters.push({
+      id: uid(), nome: pg.nome, tipo: 'PG',
+      init: 0, initMod: pg.initMod, initRolled: false,
+      percezionePassiva: pg.percezionePassiva, ca: pg.ca,
+      pfMax: pg.pfMax, pfMaxBase: pg.pfMax, pfCur: pg.pfMax,
+      condizioni: [], descrizione: '', deathSaves: [null,null,null,null,null]
+    });
+    added++;
+  });
+  closePartyModal();
+  if (added === 0) return;
+  render();
+  if (wasEmpty && !currentListName) {
+    const nome_lista = prompt('📋 Dai un nome a questo incontro/lista (puoi saltare):');
+    if (nome_lista && nome_lista.trim()) {
+      currentListName = nome_lista.trim();
+      document.getElementById('current-list-name').textContent = currentListName;
+    }
+  }
+}
+
+// ==================== INIT ====================
+render();
+
+// ==================== SERVICE WORKER ====================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(reg => console.log('SW registrato:', reg.scope))
+      .catch(err => console.log('SW errore:', err));
+  });
+}
+</script>
+</body>
+</html>
